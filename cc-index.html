@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMTFSC Cultural Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --cream:     #FAF7F2;
+  --parchment: #F2EBE0;
+  --linen:     #E8DDD0;
+  --wood-lt:   #D4B896;
+  --wood:      #B8956A;
+  --wood-dk:   #8B6344;
+  --bark:      #5C3D2E;
+  --ink:       #2C1810;
+  --ink-soft:  #4A3728;
+  --ink-muted: #8A7060;
+  --ink-faint: #B5A090;
+  --gold:      #C8973A;
+  --gold-lt:   #E8C882;
+  --white:     #FFFFFF;
+  --border:    rgba(92,61,46,0.12);
+  --border-md: rgba(92,61,46,0.22);
+  --shadow:    0 2px 20px rgba(44,24,16,0.08);
+  --shadow-lg: 0 8px 40px rgba(44,24,16,0.14);
+  --nav-h:     72px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Wood grain texture overlay via CSS */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      92deg,
+      transparent 0px, transparent 18px,
+      rgba(139,99,68,0.022) 18px, rgba(139,99,68,0.022) 19px
+    ),
+    repeating-linear-gradient(
+      88deg,
+      transparent 0px, transparent 34px,
+      rgba(184,149,106,0.018) 34px, rgba(184,149,106,0.018) 35px
+    );
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--parchment); }
+::-webkit-scrollbar-thumb { background: var(--wood); border-radius: 10px; }
+
+/* ── TYPOGRAPHY ── */
+.display    { font-family: 'Playfair Display', serif; }
+.editorial  { font-family: 'Cormorant Garamond', serif; }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: var(--nav-h);
+  background: rgba(250,247,242,0.94);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-md);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 3rem;
+}
+
+.nav-logo {
+  display: flex; align-items: center; gap: 14px; cursor: pointer; text-decoration: none;
+}
+.nav-logo-mark {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--bark);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem; font-weight: 900; color: var(--gold-lt);
+  letter-spacing: -0.5px; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(44,24,16,0.2);
+}
+.nav-logo-text { line-height: 1.15; }
+.nav-logo-text strong {
+  display: block; font-family: 'Playfair Display', serif;
+  font-weight: 700; font-size: 0.95rem; color: var(--ink);
+}
+.nav-logo-text span {
+  font-size: 0.68rem; color: var(--ink-muted); letter-spacing: 0.04em; font-weight: 300;
+}
+
+.nav-links { display: flex; align-items: center; gap: 0.15rem; }
+.nav-link {
+  padding: 0.45rem 1rem; border-radius: 6px; cursor: pointer;
+  font-size: 0.85rem; font-weight: 400; color: var(--ink-soft);
+  transition: all 0.18s; border: 1px solid transparent; text-decoration: none;
+  font-family: 'DM Sans', sans-serif;
+}
+.nav-link:hover { color: var(--bark); background: rgba(92,61,46,0.06); }
+.nav-link.active {
+  color: var(--bark); background: var(--linen);
+  border-color: var(--border-md); font-weight: 500;
+}
+.nav-admin-btn {
+  padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer;
+  font-size: 0.83rem; font-weight: 500;
+  background: var(--bark); color: var(--gold-lt);
+  border: none; transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.01em;
+}
+.nav-admin-btn:hover { background: var(--ink); }
+
+/* ── PAGES ── */
+.page { display: none; padding-top: var(--nav-h); min-height: 100vh; }
+.page.active { display: block; }
+
+/* ── HERO ── */
+.hero {
+  position: relative; overflow: hidden;
+  min-height: calc(100vh - var(--nav-h));
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 5rem 2rem 4rem;
+  background:
+    radial-gradient(ellipse 100% 80% at 50% 0%, rgba(200,151,58,0.08) 0%, transparent 60%),
+    linear-gradient(180deg, var(--white) 0%, var(--cream) 50%, var(--parchment) 100%);
+}
+
+/* Decorative corner flourishes */
+.hero::before, .hero::after {
+  content: '';
+  position: absolute;
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  opacity: 0.07;
+  background: var(--wood);
+}
+.hero::before { top: -100px; left: -100px; }
+.hero::after  { bottom: -100px; right: -80px; background: var(--gold); }
+
+.hero-ornament {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.78rem; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 1.5rem;
+  display: flex; align-items: center; gap: 1rem;
+  position: relative; z-index: 1;
+}
+.hero-ornament::before, .hero-ornament::after {
+  content: ''; display: block; width: 48px; height: 1px; background: var(--gold-lt);
+}
+
+.hero-eyebrow {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 1.1rem; color: var(--ink-muted); margin-bottom: 0.75rem;
+  position: relative; z-index: 1;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(3rem, 7vw, 6rem); font-weight: 900; line-height: 0.95;
+  color: var(--ink); position: relative; z-index: 1;
+  margin-bottom: 0.5rem; letter-spacing: -0.02em;
+}
+.hero h1 em {
+  font-style: italic; color: var(--wood-dk);
+  display: block; font-weight: 400; font-size: 0.65em; margin-bottom: 0.1em;
+}
+.hero h1 .sub-word { color: var(--bark); }
+
+.hero-divider {
+  display: flex; align-items: center; gap: 1rem; margin: 1.5rem auto;
+  position: relative; z-index: 1; width: fit-content;
+}
+.hero-divider span { width: 60px; height: 1.5px; background: var(--wood-lt); }
+.hero-divider .diamond {
+  width: 7px; height: 7px; background: var(--gold);
+  transform: rotate(45deg); flex-shrink: 0;
+}
+
+.hero-tagline {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.35rem;
+  color: var(--ink-soft); max-width: 500px; line-height: 1.6;
+  position: relative; z-index: 1; margin-bottom: 2.5rem;
+}
+
+.hero-ctas {
+  display: flex; gap: 1rem; position: relative; z-index: 1;
+  flex-wrap: wrap; justify-content: center;
+}
+
+.btn-wood {
+  padding: 0.8rem 2.2rem; border-radius: 4px;
+  background: var(--bark); color: var(--gold-lt);
+  border: none; cursor: pointer; font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem; font-weight: 500; letter-spacing: 0.03em;
+  transition: all 0.22s; box-shadow: 0 4px 16px rgba(44,24,16,0.2);
+}
+.btn-wood:hover { background: var(--ink); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(44,24,16,0.28); }
+.btn-wood:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.btn-ghost {
+  padding: 0.8rem 2.2rem; border-radius: 4px;
+  background: transparent; color: var(--bark);
+  border: 1.5px solid var(--wood); cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500;
+  transition: all 0.22s;
+}
+.btn-ghost:hover { background: var(--linen); border-color: var(--bark); transform: translateY(-2px); }
+
+/* ── STATS BAR ── */
+.stats-bar {
+  background: var(--bark);
+  display: flex; justify-content: center; gap: 0; flex-wrap: wrap;
+}
+.stat {
+  text-align: center; padding: 2rem 3.5rem;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  position: relative;
+}
+.stat:last-child { border-right: none; }
+.stat-num {
+  font-family: 'Playfair Display', serif; font-size: 2.2rem;
+  font-weight: 700; color: var(--gold-lt); line-height: 1;
+}
+.stat-label { font-size: 0.73rem; color: rgba(255,255,255,0.6); margin-top: 5px; letter-spacing: 0.06em; text-transform: uppercase; }
+
+/* ── SECTIONS ── */
+.section { padding: 5.5rem 3rem; max-width: 1200px; margin: 0 auto; }
+
+.section-header { margin-bottom: 3rem; }
+.section-tag {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 0.95rem; color: var(--gold); letter-spacing: 0.06em;
+  display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem;
+}
+.section-tag::before { content: ''; display: block; width: 28px; height: 1px; background: var(--gold); }
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem); font-weight: 700;
+  line-height: 1.15; color: var(--ink);
+}
+.section-sub { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; color: var(--ink-muted); margin-top: 0.5rem; font-style: italic; }
+
+.divider-full {
+  height: 1px; background: var(--border-md);
+  max-width: 1200px; margin: 0 auto;
+}
+.divider-ornament {
+  text-align: center; padding: 0.5rem 0; position: relative;
+}
+.divider-ornament::before {
+  content: ''; position: absolute; top: 50%;
+  left: 3rem; right: 3rem; height: 1px; background: var(--border);
+}
+.divider-ornament span {
+  position: relative; background: var(--cream); padding: 0 1rem;
+  color: var(--gold); font-size: 1.1rem;
+}
+
+/* ── CARDS ── */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+.card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1.75rem; transition: all 0.25s;
+  box-shadow: var(--shadow);
+}
+.card:hover { border-color: var(--border-md); transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+
+/* ── NOTICE BOARD ── */
+.notice-list { display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--border); }
+.notice-item {
+  background: var(--white); padding: 1.4rem 1.75rem;
+  display: flex; gap: 1.25rem; align-items: flex-start; transition: background 0.15s;
+}
+.notice-item:hover { background: var(--cream); }
+.notice-tag {
+  flex-shrink: 0; margin-top: 3px;
+  font-family: 'Cormorant Garamond', serif; font-size: 0.68rem;
+  letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;
+  padding: 3px 9px; border-radius: 3px;
+}
+.notice-tag.normal { background: var(--linen); color: var(--bark); border: 1px solid var(--border-md); }
+.notice-tag.urgent { background: #FDE8E0; color: #C0392B; border: 1px solid rgba(192,57,43,0.2); }
+.notice-body h4 { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.notice-body p { font-size: 0.85rem; color: var(--ink-soft); line-height: 1.6; }
+.notice-date { font-size: 0.75rem; color: var(--ink-faint); margin-top: 6px; font-style: italic; font-family: 'Cormorant Garamond', serif; }
+
+/* ── EVENTS ── */
+.events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.75rem; }
+.event-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden;
+  transition: all 0.25s; box-shadow: var(--shadow);
+}
+.event-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--border-md); }
+.event-thumb {
+  height: 200px; background: var(--parchment);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.event-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.event-thumb-icon { font-size: 3rem; opacity: 0.25; }
+.event-date-tag {
+  position: absolute; bottom: 12px; left: 12px;
+  background: var(--bark); color: var(--gold-lt);
+  font-family: 'Playfair Display', serif; font-size: 0.8rem; font-weight: 600;
+  padding: 5px 12px; border-radius: 3px;
+}
+.event-body { padding: 1.4rem 1.5rem; }
+.event-body h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+.event-body p { font-size: 0.84rem; color: var(--ink-muted); line-height: 1.6; font-family: 'Cormorant Garamond', serif; font-size: 1rem; }
+
+/* ── ACHIEVEMENTS ── */
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; }
+.ach-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 8px; padding: 1.75rem; display: flex;
+  gap: 1.25rem; align-items: flex-start;
+  box-shadow: var(--shadow); transition: all 0.25s;
+}
+.ach-card:hover { border-color: var(--border-md); box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+.ach-icon {
+  width: 54px; height: 54px; border-radius: 8px;
+  background: var(--parchment); border: 1px solid var(--border-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; flex-shrink: 0;
+}
+.ach-body h4 { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+.ach-body p { font-size: 0.85rem; color: var(--ink-soft); line-height: 1.6; }
+.ach-year {
+  display: inline-block; margin-top: 8px;
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 0.88rem; color: var(--gold);
+}
+
+/* ── PANEL / MEMBERS ── */
+.panel-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border-md); margin-bottom: 2.5rem; }
+.panel-tab {
+  padding: 0.8rem 1.6rem; cursor: pointer;
+  font-family: 'Cormorant Garamond', serif; font-size: 1.05rem;
+  color: var(--ink-muted); border: none; background: transparent;
+  border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: all 0.18s; letter-spacing: 0.01em;
+}
+.panel-tab:hover { color: var(--bark); }
+.panel-tab.active { color: var(--bark); border-bottom-color: var(--bark); font-weight: 600; }
+.panel-section { display: none; }
+.panel-section.active { display: block; }
+
+.member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 1.25rem; }
+.member-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 8px; overflow: hidden;
+  box-shadow: var(--shadow); transition: all 0.25s;
+}
+.member-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.member-photo {
+  width: 100%; aspect-ratio: 3/3.5;
+  background: linear-gradient(160deg, var(--parchment) 0%, var(--linen) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700;
+  color: var(--wood); overflow: hidden;
+}
+.member-photo img { width: 100%; height: 100%; object-fit: cover; }
+.member-info { padding: 1rem 1.1rem 1.25rem; }
+.member-role {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 0.8rem; color: var(--gold); margin-bottom: 3px; letter-spacing: 0.02em;
+}
+.member-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; color: var(--ink); }
+.member-meta { font-size: 0.78rem; color: var(--ink-muted); margin-top: 3px; line-height: 1.5; }
+.member-session {
+  display: inline-block; margin-top: 6px; font-size: 0.7rem;
+  padding: 2px 8px; border-radius: 3px;
+  background: var(--linen); color: var(--bark); border: 1px solid var(--border-md);
+  font-family: 'DM Sans', sans-serif;
+}
+.member-link {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 8px;
+  font-size: 0.78rem; color: var(--wood-dk); text-decoration: none; transition: opacity 0.18s;
+}
+.member-link:hover { opacity: 0.65; }
+
+/* ── ABOUT PAGE ── */
+.about-hero {
+  padding: 5rem 3rem 3rem; text-align: center;
+  background: linear-gradient(180deg, var(--white) 0%, var(--cream) 100%);
+  border-bottom: 1px solid var(--border);
+}
+.about-body { max-width: 760px; margin: 0 auto; padding: 4rem 2rem; }
+.about-body p {
+  font-family: 'Cormorant Garamond', serif; font-size: 1.15rem;
+  color: var(--ink-soft); line-height: 1.9; margin-bottom: 1.5rem;
+}
+.about-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 2.5rem 0; }
+.about-info-item {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 6px; padding: 1.25rem;
+  box-shadow: var(--shadow);
+}
+.about-info-item .lbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); margin-bottom: 4px; }
+.about-info-item .val { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; color: var(--ink); }
+
+/* ── CONTACT ── */
+.contact-split { display: grid; grid-template-columns: 1fr 1.4fr; gap: 3rem; }
+@media(max-width:750px){ .contact-split{grid-template-columns:1fr} .about-info-grid{grid-template-columns:1fr} }
+.contact-info-card {
+  background: var(--bark); border-radius: 8px; padding: 2.25rem;
+  color: rgba(255,255,255,0.85);
+}
+.contact-info-card h3 { font-family: 'Playfair Display', serif; color: var(--gold-lt); font-size: 1.3rem; margin-bottom: 1.5rem; }
+.ci-row { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem; }
+.ci-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+.ci-text strong { display: block; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 2px; }
+.ci-text span { font-size: 0.88rem; color: rgba(255,255,255,0.8); }
+.contact-form {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 8px; padding: 2.25rem; box-shadow: var(--shadow);
+}
+.contact-form h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--ink); margin-bottom: 1.5rem; }
+.form-group { margin-bottom: 1.25rem; }
+.form-group label { display: block; font-size: 0.8rem; color: var(--ink-muted); margin-bottom: 5px; letter-spacing: 0.04em; }
+.form-group input, .form-group textarea, .form-group select {
+  width: 100%; background: var(--cream); border: 1.5px solid var(--border-md);
+  border-radius: 5px; padding: 0.7rem 1rem; color: var(--ink);
+  font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
+  outline: none; transition: border-color 0.18s;
+}
+.form-group input:focus, .form-group textarea:focus { border-color: var(--wood); background: var(--white); }
+.form-group textarea { resize: vertical; min-height: 120px; }
+
+/* ── PAGE HERO ── */
+.page-hero {
+  padding: 5rem 3rem 3.5rem; text-align: center;
+  background: linear-gradient(180deg, var(--white) 0%, var(--cream) 100%);
+  border-bottom: 1px solid var(--border-md);
+}
+.page-hero .ornament {
+  font-family: 'Cormorant Garamond', serif; font-style: italic;
+  font-size: 0.9rem; color: var(--gold); letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+}
+.page-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 5vw, 3.5rem); font-weight: 700; color: var(--ink); margin-bottom: 0.75rem; }
+.page-hero p { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--ink-muted); font-style: italic; max-width: 520px; margin: 0 auto; }
+
+/* ── CALENDAR ── */
+.cal-wrap { background: var(--white); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); }
+.cal-head {
+  background: var(--bark); padding: 1.25rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cal-head h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--gold-lt); }
+.cal-nav { width: 30px; height: 30px; border-radius: 4px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); cursor: pointer; color: var(--gold-lt); font-size: 1rem; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+.cal-nav:hover { background: rgba(255,255,255,0.2); }
+.cal-body { padding: 1.25rem; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-dl { text-align: center; font-size: 0.68rem; color: var(--ink-faint); padding: 4px 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.cal-d { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 5px; font-size: 0.82rem; cursor: default; transition: background 0.12s; color: var(--ink-soft); }
+.cal-d.today { background: var(--bark); color: var(--gold-lt); font-weight: 700; }
+.cal-d.has-event { background: var(--linen); color: var(--bark); font-weight: 600; border: 1px solid var(--border-md); }
+.cal-d.other { opacity: 0.3; }
+
+/* ── ADMIN ── */
+#page-admin { padding-top: var(--nav-h); background: var(--parchment); min-height: 100vh; }
+.admin-header {
+  background: var(--white); border-bottom: 1px solid var(--border-md);
+  padding: 1.5rem 2.5rem; display: flex; align-items: center; justify-content: space-between;
+  box-shadow: var(--shadow);
+}
+.admin-header h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--ink); }
+.admin-header p { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 0.95rem; color: var(--ink-muted); }
+.admin-tabs-bar { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 2.5rem; display: flex; gap: 0; overflow-x: auto; }
+.admin-tab {
+  padding: 1rem 1.4rem; cursor: pointer; border: none; background: transparent;
+  font-family: 'DM Sans', sans-serif; font-size: 0.83rem; color: var(--ink-muted);
+  border-bottom: 2.5px solid transparent; margin-bottom: -1px; transition: all 0.18s;
+  white-space: nowrap;
+}
+.admin-tab:hover { color: var(--bark); }
+.admin-tab.active { color: var(--bark); border-bottom-color: var(--bark); font-weight: 500; }
+.admin-body { padding: 2rem 2.5rem; }
+.admin-sec { display: none; }
+.admin-sec.active { display: block; }
+.admin-form-card {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 8px; padding: 2rem; margin-bottom: 2rem;
+  box-shadow: var(--shadow);
+}
+.admin-form-card h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--ink); margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media(max-width:600px){ .form-row{grid-template-columns:1fr} }
+.admin-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.admin-item {
+  background: var(--white); border: 1px solid var(--border); border-radius: 6px;
+  padding: 0.9rem 1.25rem; display: flex; justify-content: space-between; align-items: center;
+  box-shadow: 0 1px 4px rgba(44,24,16,0.04);
+}
+.admin-item-info h4 { font-size: 0.92rem; font-weight: 500; color: var(--ink); }
+.admin-item-info p { font-size: 0.78rem; color: var(--ink-muted); margin-top: 2px; }
+.btn-del {
+  padding: 0.38rem 0.9rem; border-radius: 4px;
+  background: #FEF0F0; color: #C0392B; border: 1px solid rgba(192,57,43,0.2);
+  cursor: pointer; font-size: 0.78rem; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+}
+.btn-del:hover { background: #FDDCDC; }
+
+/* ── MODAL ── */
+.modal-overlay { display: none; position: fixed; inset: 0; z-index: 999; background: rgba(44,24,16,0.55); backdrop-filter: blur(8px); align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--white); border-radius: 12px; padding: 2.75rem;
+  width: 100%; max-width: 440px; position: relative;
+  border: 1px solid var(--border); box-shadow: var(--shadow-lg);
+}
+.modal-close {
+  position: absolute; top: 1.25rem; right: 1.25rem;
+  width: 30px; height: 30px; border-radius: 50%; background: var(--linen);
+  border: 1px solid var(--border-md); cursor: pointer; font-size: 0.9rem;
+  display: flex; align-items: center; justify-content: center; color: var(--ink-soft);
+  transition: background 0.15s;
+}
+.modal-close:hover { background: var(--parchment); }
+.modal h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--ink); margin-bottom: 0.4rem; }
+.modal p { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: var(--ink-muted); font-style: italic; margin-bottom: 2rem; }
+
+/* ── FEEDBACK ── */
+.error-msg { background: #FEF0F0; border: 1px solid rgba(192,57,43,0.25); color: #C0392B; border-radius: 5px; padding: 0.7rem 1rem; font-size: 0.84rem; margin-bottom: 1rem; display: none; }
+.error-msg.show { display: block; }
+.success-msg { background: #F0FAF0; border: 1px solid rgba(46,139,87,0.25); color: #2E6B3E; border-radius: 5px; padding: 0.7rem 1rem; font-size: 0.84rem; margin-bottom: 1rem; display: none; }
+.success-msg.show { display: block; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 9999;
+  background: var(--bark); color: var(--gold-lt); border-radius: 6px;
+  padding: 0.9rem 1.5rem; font-size: 0.86rem; font-family: 'DM Sans', sans-serif;
+  transform: translateY(80px); opacity: 0; pointer-events: none;
+  transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: var(--shadow-lg); max-width: 300px;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.error { background: #C0392B; color: white; }
+
+/* ── SPINNER ── */
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: rgba(255,255,255,0.8); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 5px; }
+.spinner.dark { border-color: rgba(44,24,16,0.15); border-top-color: var(--bark); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── REALTIME BADGE ── */
+.live-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.7rem; color: #2E8B57; padding: 0.2rem 0.65rem;
+  background: rgba(46,139,87,0.1); border: 1px solid rgba(46,139,87,0.25);
+  border-radius: 100px; margin-left: 0.75rem;
+  font-family: 'DM Sans', sans-serif;
+}
+.live-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #2E8B57; display: inline-block; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--ink); color: rgba(255,255,255,0.65);
+  padding: 3.5rem 3rem; text-align: center;
+}
+.foot-logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--gold-lt); margin-bottom: 0.5rem; font-style: italic; }
+footer p { font-size: 0.82rem; line-height: 1.7; }
+.foot-divider { width: 48px; height: 1px; background: rgba(200,151,58,0.4); margin: 1rem auto; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  nav { padding: 0 1.25rem; }
+  .nav-links { display: none; }
+  .hero { padding: 4rem 1.5rem 3rem; }
+  .section { padding: 3.5rem 1.5rem; }
+  .admin-body { padding: 1.5rem; }
+  .admin-tabs-bar { padding: 0 1.5rem; }
+  .admin-header { padding: 1rem 1.5rem; }
+  .stats-bar .stat { padding: 1.5rem 2rem; }
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
+.fade-up { animation: fadeUp 0.55s ease forwards; }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <div class="nav-logo" onclick="showPage('home')">
+    <div class="nav-logo-mark">CC</div>
+    <div class="nav-logo-text">
+      <strong>Cultural Club</strong>
+      <span>BMTFSC -𝓒𝓾𝓵𝓽𝓾𝓻𝓮 𝓱𝓸𝓵𝓭𝓼 𝓽𝓱𝓮 𝓸𝓻𝓲𝓰𝓲𝓷 𝓸𝓯 𝓪 𝓷𝓪𝓽𝓲𝓸𝓷</span>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link active"        onclick="showPage('home')">Home</a>
+    <a class="nav-link"               onclick="showPage('achievements')">Achievements</a>
+    <a class="nav-link"               onclick="showPage('panel')">Our Panel</a>
+    <a class="nav-link"               onclick="showPage('events')">Events</a>
+    <a class="nav-link"               onclick="showPage('about')">About</a>
+  </div>
+  <button class="nav-admin-btn" id="admin-nav-btn" onclick="handleAdminClick()">Admin</button>
+</nav>
+
+<!-- ═══ HOME PAGE ═══ -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-ornament">Bangladesh Machine Tools Factory School &amp; College</div>
+    <p class="hero-eyebrow">Celebrating Culture &amp; Heritage Since 2025</p>
+    <h1>
+      <em>BMTFSC</em>
+      <span class="sub-word">Cultural Club</span>
+    </h1>
+    <div class="hero-divider"><span></span><div class="diamond"></div><span></span></div>
+    <p class="hero-tagline">"Where tradition breathes and creativity flourishes — a home for every art, voice, and story."</p>
+    <div class="hero-ctas">
+	<button class="btn-ghost" onclick="showPage('panel')">Our Team</button>
+	<button class="btn-wood" onclick="showPage('events')">Explore Events</button>
+	<button class="btn-ghost" onclick="showPage('about')">Our Story</button>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-num" id="stat-members">—</div><div class="stat-label">Active Members</div></div>
+    <div class="stat"><div class="stat-num" id="stat-events">—</div><div class="stat-label">Events Held</div></div>
+    <div class="stat"><div class="stat-num" id="stat-achievements">—</div><div class="stat-label">Achievements</div></div>
+    <div class="stat"><div class="stat-num">2025</div><div class="stat-label">Established</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Who We Are</div>
+      <h2 class="section-title">A Stage for Every Voice</h2>
+      <p class="section-sub">More than a club — a community of artists, performers, and dreamers</p>
+    </div>
+    <div class="cards-grid">
+      <div class="card">
+        <div style="font-size:1.75rem;margin-bottom:0.9rem;">🎭</div>
+        <h3 class="display" style="font-size:1.1rem;margin-bottom:0.5rem;">Performing Arts</h3>
+        <p style="font-size:0.88rem;color:var(--ink-soft);line-height:1.65;font-family:'Cormorant Garamond',serif;font-size:1rem;">Drama, dance, poetry recitations, and music performances that bring our campus alive with culture.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.75rem;margin-bottom:0.9rem;">🎨</div>
+        <h3 class="display" style="font-size:1.1rem;margin-bottom:0.5rem;">Visual Arts</h3>
+        <p style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink-soft);line-height:1.65;">Painting, craft, photography, and design exhibitions that celebrate the aesthetic spirit of our students.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.75rem;margin-bottom:0.9rem;">📖</div>
+        <h3 class="display" style="font-size:1.1rem;margin-bottom:0.5rem;">Literary Arts</h3>
+        <p style="font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--ink-soft);line-height:1.65;">Debates, essay competitions, story-writing, and literary festivals that honour the power of words.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider-ornament"><span>✦</span></div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Notice Board</div>
+      <h2 class="section-title">Latest Announcements</h2>
+    </div>
+    <div id="home-notices"><p style="color:var(--ink-faint);font-style:italic;font-family:'Cormorant Garamond',serif;">Loading notices…</p></div>
+  </div>
+
+  <div class="divider-ornament"><span>✦</span></div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-tag">Schedule</div>
+      <h2 class="section-title">Event Calendar</h2>
+    </div>
+    <div style="max-width:400px;" id="mini-cal"></div>
+  </div>
+
+  <footer>
+    <div class="foot-logo">BMTFSC Cultural Club</div>
+    <div class="foot-divider"></div>
+    <p>Bangladesh Machine Tools Factory School and College, Cantonment</p>
+    <p style="margin-top:4px;font-size:0.76rem;opacity:0.5;">"Where tradition breathes and creativity flourishes." &mdash; &copy; 2024</p>
+  </footer>
+</div>
+
+<!-- ═══ ACHIEVEMENTS PAGE ═══ -->
+<div id="page-achievements" class="page">
+  <div class="page-hero">
+    <p class="ornament">Hall of Honour</p>
+    <h1>Achievements</h1>
+    <p>Our milestones, accolades, and proud moments as a cultural community</p>
+  </div>
+  <div class="section">
+    <div class="ach-grid" id="ach-grid"></div>
+    <div id="ach-empty" style="text-align:center;padding:4rem;color:var(--ink-faint);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.15rem;display:none;">No achievements posted yet. Check back soon.</div>
+  </div>
+  <footer><div class="foot-logo">BMTFSC Cultural Club</div><div class="foot-divider"></div><p>"Where tradition breathes and creativity flourishes."</p></footer>
+</div>
+
+<!-- ═══ PANEL PAGE ═══ -->
+<div id="page-panel" class="page">
+  <div class="page-hero">
+    <p class="ornament">The Faces Behind the Stage</p>
+    <h1>Our Panel</h1>
+    <p>Meet the executive members, teachers, advisors, and founders who lead our club</p>
+  </div>
+  <div class="section">
+    <div class="panel-tabs">
+      <button class="panel-tab active" onclick="switchPanel('executive',this)">Executive Panel</button>
+      <button class="panel-tab" onclick="switchPanel('teachers',this)">Teachers' Panel</button>
+      <button class="panel-tab" onclick="switchPanel('advisor',this)">Advisor Panel</button>
+      <button class="panel-tab" onclick="switchPanel('founder',this)">Founders</button>
+    </div>
+    <div id="panel-executive" class="panel-section active">
+      <div class="member-grid" id="exec-grid"></div>
+      <div id="exec-empty" style="text-align:center;padding:3rem;color:var(--ink-faint);font-style:italic;font-family:'Cormorant Garamond',serif;display:none;">No executive members added yet.</div>
+    </div>
+    <div id="panel-teachers" class="panel-section">
+      <div class="member-grid" id="teach-grid"></div>
+      <div id="teach-empty" style="text-align:center;padding:3rem;color:var(--ink-faint);font-style:italic;font-family:'Cormorant Garamond',serif;display:none;">No teachers added yet.</div>
+    </div>
+    <div id="panel-advisor" class="panel-section">
+      <div class="member-grid" id="adv-grid"></div>
+      <div id="adv-empty" style="text-align:center;padding:3rem;color:var(--ink-faint);font-style:italic;font-family:'Cormorant Garamond',serif;display:none;">No advisors added yet.</div>
+    </div>
+    <div id="panel-founder" class="panel-section">
+      <div class="member-grid" id="found-grid"></div>
+      <div id="found-empty" style="text-align:center;padding:3rem;color:var(--ink-faint);font-style:italic;font-family:'Cormorant Garamond',serif;display:none;">No founders added yet.</div>
+    </div>
+  </div>
+  <footer><div class="foot-logo">BMTFSC Cultural Club</div><div class="foot-divider"></div><p>"Where tradition breathes and creativity flourishes."</p></footer>
+</div>
+
+<!-- ═══ EVENTS PAGE ═══ -->
+<div id="page-events" class="page">
+  <div class="page-hero">
+    <span class="section-tag">Gallery &amp; Events</span>
+    <h1>Events</h1>
+    <p>Workshops, competitions, hackathons, and club gatherings</p>
+  </div>
+  <div class="section">
+    <div class="events-grid" id="events-grid"></div>
+    <div id="events-empty" style="text-align:center;padding:4rem;color:var(--text-muted);display:none;">No events posted yet.</div>
+  </div>
+  <div class="divider"></div>
+  <div class="section">
+    <div class="section-header">
+      <span class="section-tag">Get In Touch</span>
+      <h2 class="section-title">Contact Us</h2>
+      <p class="section-sub">Reach out for collaborations, queries, or to join the club</p>
+    </div>
+    <div class="contact-grid">
+      <div>
+        <div class="card" style="margin-bottom:1rem;"><div style="font-size:1.2rem;margin-bottom:0.5rem;">📍</div><h4 style="font-size:0.9rem;margin-bottom:4px;">Location</h4><p style="font-size:0.83rem;color:var(--text-secondary);">Bangladesh Machine Tools Factory School And College,<br>BMTF Ltd., Gazipur Cantonment</p></div>
+        <div class="card" style="margin-bottom:1rem;"><div style="font-size:1.2rem;margin-bottom:0.5rem;">✉️</div><h4 style="font-size:0.9rem;margin-bottom:4px;">Email</h4><p style="font-size:0.83rem;color:var(--text-secondary);">bmtfsc.ic25@gmail.com</p></div>
+        <div class="card"><div style="font-size:1.2rem;margin-bottom:0.5rem;">📱</div><h4 style="font-size:0.9rem;margin-bottom:4px;">Panel Recruitment Form</h4><p style="font-size:0.83rem;color:var(--text-secondary);"><a href ="https://forms.gle/jMq4AW9GmgvymEA57">Click Here to Register</a></p></div>
+      </div>
+      <div class="contact-form-wrap">
+        <h3 style="font-family:'Syne',sans-serif;margin-bottom:1.5rem;font-size:1.1rem;">Send a Message</h3>
+        <div class="form-group"><label>Your Name</label><input type="text" id="cf-name" placeholder="Enter your full name"></div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="cf-email" placeholder="your@email.com"></div>
+        <div class="form-group"><label>Message</label><textarea id="cf-msg" placeholder="Write your message here..."></textarea></div>
+        <button class="btn-primary" style="width:100%;" onclick="fakeSubmit(this)">Send Message</button>
+      </div>
+    </div>
+  </div>
+  <footer><div class="foot-brand">BMTFSC Cultural Club</div><p>"𝓒𝓾𝓵𝓽𝓾𝓻𝓮 𝓱𝓸𝓵𝓭𝓼 𝓽𝓱𝓮 𝓸𝓻𝓲𝓰𝓲𝓷 𝓸𝓯 𝓪 𝓷𝓪𝓽𝓲𝓸𝓷"</p></footer>
+</div>
+
+<!-- ═══ ABOUT PAGE ═══ -->
+<div id="page-about" class="page">
+  <div class="about-hero">
+    <p style="font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);font-size:0.9rem;letter-spacing:0.1em;margin-bottom:0.75rem;">Our Story</p>
+    <h1 style="font-family:'Playfair Display',serif;font-size:clamp(2.2rem,5vw,3.5rem);font-weight:700;color:var(--ink);">About the Club</h1>
+  </div>
+  <div class="about-body">
+    <p>The BMTFSC Cultural Club was born from a simple belief: that every student carries a story worth telling, a song worth singing, and an art worth showing to the world. Founded in 2025, we set out to create a sanctuary for the creative spirit within Bangladesh Machine Tools Factory School and College.</p>
+    <p>Our club is a tapestry woven from diverse artistic threads — theatre, dance, music, painting, literature, and beyond. We organise cultural festivals, inter-school competitions, and showcase events that celebrate the rich heritage of Bangladesh while inspiring our students to push creative boundaries.</p>
+    <p>We operate under our guiding belief: <em style="color:var(--wood-dk);">"Where tradition breathes and creativity flourishes."</em> It is a promise to every member that this club will always be a place of growth, expression, and belonging.</p>
+    <div class="about-info-grid">
+      <div class="about-info-item"><div class="lbl">Institution</div><div class="val">BMTFSC</div></div>
+      <div class="about-info-item"><div class="lbl">Club Type</div><div class="val">Cultural &amp; Arts</div></div>
+      <div class="about-info-item"><div class="lbl">Motto</div><div class="val">"𝓒𝓾𝓵𝓽𝓾𝓻𝓮 𝓱𝓸𝓵𝓭𝓼 𝓽𝓱𝓮 𝓸𝓻𝓲𝓰𝓲𝓷 𝓸𝓯 𝓪 𝓷𝓪𝓽𝓲𝓸𝓷"</div></div>
+      <div class="about-info-item"><div class="lbl">Established</div><div class="val">2025</div></div>
+    </div>
+  </div>
+  <footer><div class="foot-logo">BMTFSC Cultural Club</div><div class="foot-divider"></div><p>"Where tradition breathes and creativity flourishes."</p></footer>
+</div>
+
+<!-- ═══ ADMIN PAGE ═══ -->
+<div id="page-admin" class="page" style="display:none;">
+  <div class="admin-header">
+    <div>
+      <h2>Admin Dashboard <span class="live-badge">Live</span></h2>
+      <p id="admin-user-email">Manage all club content in real-time</p>
+    </div>
+    <button class="btn-ghost" onclick="adminLogout()">Logout</button>
+  </div>
+  <div class="admin-tabs-bar">
+    <button class="admin-tab active" onclick="switchAdminTab('notices',this)">📋 Notices</button>
+    <button class="admin-tab" onclick="switchAdminTab('events',this)">🎉 Events</button>
+    <button class="admin-tab" onclick="switchAdminTab('achievements',this)">🏆 Achievements</button>
+    <button class="admin-tab" onclick="switchAdminTab('executive',this)">👤 Executive</button>
+    <button class="admin-tab" onclick="switchAdminTab('teachers',this)">📚 Teachers</button>
+    <button class="admin-tab" onclick="switchAdminTab('advisor',this)">🎓 Advisors</button>
+    <button class="admin-tab" onclick="switchAdminTab('founder',this)">⭐ Founders</button>
+    <button class="admin-tab" onclick="switchAdminTab('stats',this)">📊 Stats</button>
+  </div>
+  <div class="admin-body">
+
+    <!-- NOTICES -->
+    <div class="admin-sec active" id="admin-notices">
+      <div class="admin-form-card">
+        <h3>Add New Notice</h3>
+        <div id="msg-n" class="success-msg">Notice added successfully.</div>
+        <div class="form-row">
+          <div class="form-group"><label>Title</label><input type="text" id="n-title" placeholder="Notice title"></div>
+          <div class="form-group"><label>Type</label><select id="n-type"><option value="normal">Normal</option><option value="urgent">Urgent</option></select></div>
+        </div>
+        <div class="form-group"><label>Content</label><textarea id="n-content" placeholder="Notice details…"></textarea></div>
+        <div class="form-group"><label>Date</label><input type="date" id="n-date"></div>
+        <button class="btn-wood" id="btn-n" onclick="addNotice()">Add Notice</button>
+      </div>
+      <div class="admin-list" id="al-notices"></div>
+    </div>
+
+    <!-- EVENTS -->
+    <div class="admin-sec" id="admin-events">
+      <div class="admin-form-card">
+        <h3>Add New Event</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Event Title</label><input type="text" id="ev-title" placeholder="Event name"></div>
+          <div class="form-group"><label>Date</label><input type="date" id="ev-date"></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="ev-desc" placeholder="Describe the event…"></textarea></div>
+        <div class="form-group"><label>Image URL (optional)</label><input type="url" id="ev-img" placeholder="https://…"></div>
+        <button class="btn-wood" id="btn-ev" onclick="addEvent()">Add Event</button>
+      </div>
+      <div class="admin-list" id="al-events"></div>
+    </div>
+
+    <!-- ACHIEVEMENTS -->
+    <div class="admin-sec" id="admin-achievements">
+      <div class="admin-form-card">
+        <h3>Add Achievement</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Title</label><input type="text" id="ach-title" placeholder="Achievement title"></div>
+          <div class="form-group"><label>Year</label><input type="text" id="ach-year" placeholder="2024"></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="ach-desc" placeholder="Details…"></textarea></div>
+        <div class="form-group"><label>Icon (emoji)</label><input type="text" id="ach-icon" placeholder="🏆" style="width:80px;"></div>
+        <button class="btn-wood" id="btn-ach" onclick="addAchievement()">Add Achievement</button>
+      </div>
+      <div class="admin-list" id="al-ach"></div>
+    </div>
+
+    <!-- EXECUTIVE -->
+    <div class="admin-sec" id="admin-executive">
+      <div class="admin-form-card">
+        <h3>Add Executive Member</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Full Name</label><input type="text" id="ex-name" placeholder="Name"></div>
+          <div class="form-group"><label>Role</label><input type="text" id="ex-role" placeholder="e.g. President"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Class</label><input type="text" id="ex-class" placeholder="Class XI"></div>
+          <div class="form-group"><label>Section</label><input type="text" id="ex-section" placeholder="e.g. Science A"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Session</label><input type="text" id="ex-session" placeholder="2023-24"></div>
+          <div class="form-group"><label>Photo URL (optional)</label><input type="url" id="ex-photo" placeholder="https://…"></div>
+        </div>
+        <div class="form-group"><label>Instagram URL</label><input type="url" id="ex-insta" placeholder="https://instagram.com/…"></div>
+        <button class="btn-wood" id="btn-ex" onclick="addMember('executive')">Add Executive</button>
+      </div>
+      <div class="admin-list" id="al-exec"></div>
+    </div>
+
+    <!-- TEACHERS -->
+    <div class="admin-sec" id="admin-teachers">
+      <div class="admin-form-card">
+        <h3>Add Teacher</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Full Name</label><input type="text" id="tc-name" placeholder="Name"></div>
+          <div class="form-group"><label>Role in Club</label><input type="text" id="tc-role" placeholder="Faculty Advisor"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Designation</label><input type="text" id="tc-desig" placeholder="Senior Lecturer"></div>
+          <div class="form-group"><label>Department</label><input type="text" id="tc-dept" placeholder="Bangla / Arts"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Photo URL (optional)</label><input type="url" id="tc-photo" placeholder="https://…"></div>
+          <div class="form-group"><label>Facebook URL</label><input type="url" id="tc-fb" placeholder="https://facebook.com/…"></div>
+        </div>
+        <button class="btn-wood" id="btn-tc" onclick="addMember('teachers')">Add Teacher</button>
+      </div>
+      <div class="admin-list" id="al-teach"></div>
+    </div>
+
+    <!-- ADVISORS -->
+    <div class="admin-sec" id="admin-advisor">
+      <div class="admin-form-card">
+        <h3>Add Advisor</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Full Name</label><input type="text" id="adv-name" placeholder="Name"></div>
+          <div class="form-group"><label>Institution</label><input type="text" id="adv-inst" placeholder="University/College"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Photo URL (optional)</label><input type="url" id="adv-photo" placeholder="https://…"></div>
+          <div class="form-group"><label>Instagram URL</label><input type="url" id="adv-insta" placeholder="https://instagram.com/…"></div>
+        </div>
+        <button class="btn-wood" id="btn-adv" onclick="addMember('advisor')">Add Advisor</button>
+      </div>
+      <div class="admin-list" id="al-adv"></div>
+    </div>
+
+    <!-- FOUNDERS -->
+    <div class="admin-sec" id="admin-founder">
+      <div class="admin-form-card">
+        <h3>Add Founder</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Full Name</label><input type="text" id="fo-name" placeholder="Name"></div>
+          <div class="form-group"><label>Current Institution</label><input type="text" id="fo-inst" placeholder="University/College"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Photo URL (optional)</label><input type="url" id="fo-photo" placeholder="https://…"></div>
+          <div class="form-group"><label>Profile URL</label><input type="url" id="fo-link" placeholder="https://…"></div>
+        </div>
+        <button class="btn-wood" id="btn-fo" onclick="addMember('founder')">Add Founder</button>
+      </div>
+      <div class="admin-list" id="al-found"></div>
+    </div>
+
+    <!-- STATS -->
+    <div class="admin-sec" id="admin-stats">
+      <div class="admin-form-card">
+        <h3>Update Homepage Statistics</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Active Members</label><input type="number" id="st-mem" placeholder="0"></div>
+          <div class="form-group"><label>Events Held</label><input type="number" id="st-ev" placeholder="0"></div>
+        </div>
+        <div class="form-group" style="max-width:300px;"><label>Achievements Count</label><input type="number" id="st-ach" placeholder="0"></div>
+        <button class="btn-wood" id="btn-stats" onclick="updateStats()">Update Stats</button>
+      </div>
+    </div>
+
+  </div><!-- /admin-body -->
+</div>
+
+<!-- ═══ LOGIN MODAL ═══ -->
+<div class="modal-overlay" id="login-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>Admin Sign In</h2>
+    <p>Sign in to manage cultural club content</p>
+    <div id="login-err" class="error-msg">Incorrect email or password. Please try again.</div>
+    <div class="form-group"><label>Email</label><input type="email" id="l-email" placeholder="admin@example.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="form-group"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-wood" style="width:100%;margin-top:0.5rem;" id="btn-login" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  ⚙️  CONFIGURATION — paste your Supabase credentials here
+// ══════════════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://muneaydvudnvsomosrqw.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im11bmVheWR2dWRudnNvbW9zcnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc1Njc3MjMsImV4cCI6MjA5MzE0MzcyM30.XG2wiKEAV1582YeJDE65xZIYYNzEKEAk0ZAq1yvPpXE';
+// ══════════════════════════════════════════════════════════
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── HELPERS ──
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const v   = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+const clr = ids => ids.forEach(id => { const e = document.getElementById(id); if(e) e.value = ''; });
+
+function toast(msg, type='success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show' + (type==='error'?' error':'');
+  clearTimeout(el._t); el._t = setTimeout(() => el.className = '', 3500);
+}
+
+function initials(name) { return String(name||'').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+
+// ── AUTH ──
+let user = null;
+
+async function doLogin() {
+  const email = v('l-email'), pass = v('l-pass');
+  const btn = document.getElementById('btn-login');
+  const err = document.getElementById('login-err');
+  err.classList.remove('show');
+  btn.innerHTML = '<span class="spinner dark"></span>Signing in…'; btn.disabled = true;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false; btn.textContent = 'Sign In';
+  if (error) { err.textContent = error.message; err.classList.add('show'); return; }
+  user = data.user;
+  closeModal();
+  onLoggedIn();
+}
+
+async function adminLogout() {
+  await sb.auth.signOut();
+  user = null;
+  document.getElementById('admin-nav-btn').textContent = 'Admin';
+  showPage('home');
+}
+
+function onLoggedIn() {
+  document.getElementById('admin-nav-btn').textContent = 'Dashboard';
+  document.getElementById('admin-user-email').textContent = 'Signed in as: ' + (user?.email || 'Admin');
+  showPage('admin');
+  renderAdmin();
+}
+
+function handleAdminClick() {
+  if (user) showPage('admin');
+  else document.getElementById('login-modal').classList.add('open');
+}
+function closeModal() { document.getElementById('login-modal').classList.remove('open'); }
+
+// Restore session on load
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) { user = session.user; document.getElementById('admin-nav-btn').textContent = 'Dashboard'; }
+})();
+
+// ── NAVIGATION ──
+function showPage(id) {
+  if (id === 'admin' && !user) { handleAdminClick(); return; }
+  document.querySelectorAll('.page').forEach(p => { p.style.display='none'; p.classList.remove('active'); });
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  const pg = document.getElementById('page-' + id);
+  if (pg) { pg.style.display='block'; pg.classList.add('active'); }
+  const lnk = document.querySelector(`.nav-link[onclick="showPage('${id}')"]`);
+  if (lnk) lnk.classList.add('active');
+  if (id==='home')         { loadStats(); loadNotices(); renderCalNow(); }
+  if (id==='achievements') { loadAchievements(); }
+  if (id==='panel')        { loadPanel(); }
+  if (id==='events')       { loadEvents(); }
+  if (id==='admin')        { renderAdmin(); }
+  window.scrollTo(0,0);
+}
+
+function switchPanel(tab, btn) {
+  document.querySelectorAll('.panel-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel-section').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+function switchAdminTab(tab, btn) {
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.admin-sec').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('admin-'+tab).classList.add('active');
+}
+
+// ── STATS ──
+async function loadStats() {
+  const { data } = await sb.from('site_stats').select('*').eq('id',1).single();
+  if (!data) return;
+  ['members','events','achievements'].forEach(k => {
+    const el = document.getElementById('stat-'+k);
+    if (el && data[k+'_count']) el.textContent = data[k+'_count'];
+  });
+}
+async function updateStats() {
+  const btn = document.getElementById('btn-stats');
+  btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
+  const { error } = await sb.from('site_stats').upsert({ id:1, members_count:v('st-mem'), events_count:v('st-ev'), achievements_count:v('st-ach'), updated_at: new Date().toISOString() });
+  btn.textContent='Update Stats'; btn.disabled=false;
+  if (error) { toast(error.message,'error'); return; }
+  toast('Stats updated!'); loadStats();
+}
+
+// ── NOTICES ──
+async function loadNotices() {
+  const { data } = await sb.from('notices').select('*').order('created_at',{ascending:false}).limit(5);
+  const el = document.getElementById('home-notices');
+  if (!el) return;
+  if (!data?.length) { el.innerHTML='<p style="color:var(--ink-faint);font-style:italic;font-family:\'Cormorant Garamond\',serif;">No notices yet.</p>'; return; }
+  el.innerHTML = `<div class="notice-list">${data.map(n=>`
+    <div class="notice-item">
+      <div class="notice-tag ${n.type||'normal'}">${n.type==='urgent'?'Urgent':'Notice'}</div>
+      <div class="notice-body">
+        <h4>${esc(n.title)}</h4>
+        <p>${esc(n.content)}</p>
+        <div class="notice-date">${n.date ? new Date(n.date).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) : ''}</div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+async function addNotice() {
+  const title=v('n-title'), content=v('n-content'), type=v('n-type'), date=v('n-date');
+  if (!title||!content) { toast('Title and content required.','error'); return; }
+  const btn=document.getElementById('btn-n');
+  btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
+  const { error } = await sb.from('notices').insert({ title, content, type, date:date||null });
+  btn.textContent='Add Notice'; btn.disabled=false;
+  if (error) { toast(error.message,'error'); return; }
+  clr(['n-title','n-content','n-date']); toast('Notice added!');
+  loadAdminList('notices'); loadNotices();
+}
+
+// ── EVENTS ──
+async function loadEvents() {
+  const { data } = await sb.from('events').select('*').order('created_at',{ascending:false});
+  const grid=document.getElementById('events-grid'), empty=document.getElementById('events-empty');
+  if (!grid) return;
+  if (!data?.length) { grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  grid.innerHTML = data.map(e=>`
+    <div class="event-card">
+      <div class="event-thumb">
+        ${e.image_url ? `<img src="${esc(e.image_url)}" alt="${esc(e.title)}" onerror="this.style.display='none'">` : `<div class="event-thumb-icon">🎭</div>`}
+        ${e.date ? `<div class="event-date-tag">${new Date(e.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>` : ''}
+      </div>
+      <div class="event-body">
+        <h3>${esc(e.title)}</h3>
+        <p>${esc(e.description||'')}</p>
+      </div>
+    </div>`).join('');
+}
+async function addEvent() {
+  const title=v('ev-title'), desc=v('ev-desc'), date=v('ev-date'), img=v('ev-img');
+  if (!title) { toast('Event title required.','error'); return; }
+  const btn=document.getElementById('btn-ev');
+  btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
+  const { error } = await sb.from('events').insert({ title, description:desc, date:date||null, image_url:img||null });
+  btn.textContent='Add Event'; btn.disabled=false;
+  if (error) { toast(error.message,'error'); return; }
+  clr(['ev-title','ev-desc','ev-date','ev-img']); toast('Event added!');
+  loadAdminList('events'); loadEvents(); renderCalNow();
+}
+
+// ── ACHIEVEMENTS ──
+async function loadAchievements() {
+  const { data } = await sb.from('achievements').select('*').order('created_at',{ascending:false});
+  const grid=document.getElementById('ach-grid'), empty=document.getElementById('ach-empty');
+  if (!grid) return;
+  if (!data?.length) { grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  grid.innerHTML = data.map(a=>`
+    <div class="ach-card">
+      <div class="ach-icon">${esc(a.icon||'🏆')}</div>
+      <div class="ach-body">
+        <h4>${esc(a.title)}</h4>
+        <p>${esc(a.description||'')}</p>
+        ${a.year ? `<div class="ach-year">${esc(a.year)}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+async function addAchievement() {
+  const title=v('ach-title'), desc=v('ach-desc'), year=v('ach-year'), icon=v('ach-icon')||'🏆';
+  if (!title) { toast('Title required.','error'); return; }
+  const btn=document.getElementById('btn-ach');
+  btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
+  const { error } = await sb.from('achievements').insert({ title, description:desc, year:year||null, icon });
+  btn.textContent='Add Achievement'; btn.disabled=false;
+  if (error) { toast(error.message,'error'); return; }
+  clr(['ach-title','ach-desc','ach-year']); toast('Achievement added!');
+  loadAdminList('achievements'); loadAchievements();
+}
+
+// ── PANEL / MEMBERS ──
+async function loadPanel() {
+  const [ex,tc,adv,fo] = await Promise.all([
+    sb.from('executive_members').select('*').order('created_at'),
+    sb.from('teachers').select('*').order('created_at'),
+    sb.from('advisors').select('*').order('created_at'),
+    sb.from('founders').select('*').order('created_at'),
+  ]);
+  renderMemberGrid(ex.data||[], 'exec-grid', 'exec-empty', buildExecCard);
+  renderMemberGrid(tc.data||[], 'teach-grid', 'teach-empty', buildTeacherCard);
+  renderMemberGrid(adv.data||[], 'adv-grid', 'adv-empty', buildAdvCard);
+  renderMemberGrid(fo.data||[], 'found-grid', 'found-empty', buildFounderCard);
+}
+function renderMemberGrid(list, gridId, emptyId, fn) {
+  const g=document.getElementById(gridId), e=document.getElementById(emptyId);
+  if (!g) return;
+  if (!list.length) { g.innerHTML=''; if(e) e.style.display='block'; return; }
+  if(e) e.style.display='none';
+  g.innerHTML = list.map(fn).join('');
+}
+function photoOrInitials(m) {
+  if (m.photo_url) return `<img src="${esc(m.photo_url)}" alt="${esc(m.name)}" onerror="this.parentElement.innerHTML='${initials(m.name)}'">`;
+  return initials(m.name);
+}
+function buildExecCard(m) { return `<div class="member-card"><div class="member-photo">${photoOrInitials(m)}</div><div class="member-info"><div class="member-role">${esc(m.role)}</div><div class="member-name">${esc(m.name)}</div><div class="member-meta">${esc(m.class||'')}${m.section?' · '+esc(m.section):''}</div>${m.session?`<span class="member-session">Session: ${esc(m.session)}</span>`:''} ${m.instagram_url?`<br><a href="${esc(m.instagram_url)}" target="_blank" class="member-link">📸 Instagram</a>`:''}</div></div>`; }
+function buildTeacherCard(m) { return `<div class="member-card"><div class="member-photo">${photoOrInitials(m)}</div><div class="member-info"><div class="member-role">${esc(m.role)}</div><div class="member-name">${esc(m.name)}</div><div class="member-meta">${esc(m.designation||'')}${m.department?'<br>'+esc(m.department):''}</div>${m.facebook_url?`<a href="${esc(m.facebook_url)}" target="_blank" class="member-link">👤 Facebook</a>`:''}</div></div>`; }
+function buildAdvCard(m) { return `<div class="member-card"><div class="member-photo">${photoOrInitials(m)}</div><div class="member-info"><div class="member-role">Advisor</div><div class="member-name">${esc(m.name)}</div><div class="member-meta">${esc(m.institution||'')}</div>${m.instagram_url?`<a href="${esc(m.instagram_url)}" target="_blank" class="member-link">📸 Instagram</a>`:''}</div></div>`; }
+function buildFounderCard(m) { return `<div class="member-card"><div class="member-photo" style="background:linear-gradient(160deg,var(--linen),var(--parchment))">${photoOrInitials(m)}</div><div class="member-info"><div class="member-role" style="color:var(--gold);">⭐ Founder</div><div class="member-name">${esc(m.name)}</div><div class="member-meta">${esc(m.institution||'')}</div>${m.profile_url?`<a href="${esc(m.profile_url)}" target="_blank" class="member-link">↗ Profile</a>`:''}</div></div>`; }
+
+async function addMember(type) {
+  const cfgs = {
+    executive: { table:'executive_members', btn:'btn-ex', ids:['ex-name','ex-role','ex-class','ex-section','ex-session','ex-photo','ex-insta'], getData:()=>({ name:v('ex-name'), role:v('ex-role'), class:v('ex-class'), section:v('ex-section'), session:v('ex-session'), photo_url:v('ex-photo')||null, instagram_url:v('ex-insta')||null }) },
+    teachers:  { table:'teachers', btn:'btn-tc', ids:['tc-name','tc-role','tc-desig','tc-dept','tc-photo','tc-fb'], getData:()=>({ name:v('tc-name'), role:v('tc-role'), designation:v('tc-desig'), department:v('tc-dept'), photo_url:v('tc-photo')||null, facebook_url:v('tc-fb')||null }) },
+    advisor:   { table:'advisors', btn:'btn-adv', ids:['adv-name','adv-inst','adv-photo','adv-insta'], getData:()=>({ name:v('adv-name'), institution:v('adv-inst'), photo_url:v('adv-photo')||null, instagram_url:v('adv-insta')||null }) },
+    founder:   { table:'founders', btn:'btn-fo', ids:['fo-name','fo-inst','fo-photo','fo-link'], getData:()=>({ name:v('fo-name'), institution:v('fo-inst'), photo_url:v('fo-photo')||null, profile_url:v('fo-link')||null }) },
+  };
+  const cfg = cfgs[type]; const data = cfg.getData();
+  if (!data.name) { toast('Name is required.','error'); return; }
+  const btn = document.getElementById(cfg.btn);
+  btn.innerHTML='<span class="spinner"></span>Saving…'; btn.disabled=true;
+  const { error } = await sb.from(cfg.table).insert(data);
+  btn.textContent = btn.textContent || 'Add';
+  const labels = {executive:'Add Executive',teachers:'Add Teacher',advisor:'Add Advisor',founder:'Add Founder'};
+  btn.textContent = labels[type]; btn.disabled=false;
+  if (error) { toast(error.message,'error'); return; }
+  clr(cfg.ids); toast('Member added!');
+  const listKeys = {executive:'exec',teachers:'teach',advisor:'adv',founder:'found'};
+  loadAdminList2(type, cfg.table, listKeys[type]); loadPanel();
+}
+
+// ── ADMIN LISTS ──
+const tMap  = { notices:'notices', events:'events', achievements:'achievements', executive:'executive_members', teachers:'teachers', advisor:'advisors', founder:'founders' };
+const elMap = { notices:'al-notices', events:'al-events', achievements:'al-ach', executive:'al-exec', teachers:'al-teach', advisor:'al-adv', founder:'al-found' };
+
+async function loadAdminList(type) {
+  const el = document.getElementById(elMap[type]);
+  if (!el) return;
+  const { data } = await sb.from(tMap[type]).select('*').order('created_at',{ascending:false});
+  renderAdminList(el, data||[], type);
+}
+async function loadAdminList2(type, table, elSuffix) {
+  const el = document.getElementById('al-'+elSuffix);
+  if (!el) return;
+  const { data } = await sb.from(table).select('*').order('created_at',{ascending:false});
+  renderAdminList(el, data||[], type);
+}
+function renderAdminList(el, items, type) {
+  if (!items.length) { el.innerHTML='<p style="color:var(--ink-faint);font-style:italic;padding:0.5rem 0;font-size:0.85rem;">No items yet.</p>'; return; }
+  el.innerHTML = items.map(item=>`
+    <div class="admin-item">
+      <div class="admin-item-info">
+        <h4>${esc(item.title||item.name||'—')}</h4>
+        <p>${esc(String(item.role||item.description||item.content||item.institution||'').slice(0,80))}</p>
+      </div>
+      <button class="btn-del" onclick="deleteItem('${type}',${item.id})">Delete</button>
+    </div>`).join('');
+}
+async function deleteItem(type, id) {
+  const { error } = await sb.from(tMap[type]).delete().eq('id',id);
+  if (error) { toast(error.message,'error'); return; }
+  toast('Deleted.');
+  loadAdminList(type);
+  if (type==='notices') loadNotices();
+  if (type==='events')  { loadEvents(); renderCalNow(); }
+  if (type==='achievements') loadAchievements();
+  if (['executive','teachers','advisor','founder'].includes(type)) loadPanel();
+}
+
+async function renderAdmin() {
+  ['notices','events','achievements','executive','teachers','advisor','founder'].forEach(t => loadAdminList(t));
+  const { data } = await sb.from('site_stats').select('*').eq('id',1).single();
+  if (data) {
+    document.getElementById('st-mem').value = data.members_count||'';
+    document.getElementById('st-ev').value  = data.events_count||'';
+    document.getElementById('st-ach').value = data.achievements_count||'';
+  }
+}
+
+// ── CALENDAR ──
+let calDates = new Set();
+async function loadCalDates() {
+  const { data } = await sb.from('events').select('date');
+  calDates = new Set((data||[]).map(e=>e.date).filter(Boolean));
+}
+function renderCal(y, m, containerId) {
+  const el = document.getElementById(containerId); if (!el) return;
+  const now = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const days = ['S','M','T','W','T','F','S'];
+  const first = new Date(y,m,1).getDay(), total = new Date(y,m+1,0).getDate();
+  let html = `<div class="cal-wrap">
+    <div class="cal-head">
+      <button class="cal-nav" onclick="moveCal(-1,'${containerId}')">‹</button>
+      <h3>${months[m]} ${y}</h3>
+      <button class="cal-nav" onclick="moveCal(1,'${containerId}')">›</button>
+    </div>
+    <div class="cal-body"><div class="cal-grid">
+      ${days.map(d=>`<div class="cal-dl">${d}</div>`).join('')}`;
+  for(let i=0;i<first;i++) html+=`<div class="cal-d other"></div>`;
+  for(let d=1;d<=total;d++){
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isT = d===now.getDate()&&m===now.getMonth()&&y===now.getFullYear();
+    const hasE = calDates.has(ds);
+    html+=`<div class="cal-d ${isT?'today':''} ${hasE&&!isT?'has-event':''}" title="${hasE?'Event':''}"">${d}</div>`;
+  }
+  html+='</div></div></div>';
+  el.innerHTML=html; el._y=y; el._m=m;
+}
+function moveCal(dir, id) {
+  const el=document.getElementById(id); let y=el._y, m=el._m+dir;
+  if(m>11){m=0;y++;}if(m<0){m=11;y--;}
+  renderCal(y,m,id);
+}
+async function renderCalNow() {
+  await loadCalDates();
+  const n=new Date(); renderCal(n.getFullYear(),n.getMonth(),'mini-cal');
+}
+
+// ── CONTACT FORM ──
+function fakeSubmit(btn) {
+  btn.textContent='Message Sent ✓'; btn.style.background='#5C7A3E';
+  setTimeout(()=>{btn.textContent='Send Message';btn.style.background='';},3000);
+}
+
+// ── REALTIME ──
+function setupRealtime() {
+  sb.channel('cultural-club-changes')
+    .on('postgres_changes',{event:'*',schema:'public',table:'notices'},   ()=>loadNotices())
+    .on('postgres_changes',{event:'*',schema:'public',table:'events'},    ()=>{ loadEvents(); renderCalNow(); })
+    .on('postgres_changes',{event:'*',schema:'public',table:'achievements'},()=>loadAchievements())
+    .on('postgres_changes',{event:'*',schema:'public',table:'executive_members'},()=>loadPanel())
+    .on('postgres_changes',{event:'*',schema:'public',table:'teachers'},  ()=>loadPanel())
+    .on('postgres_changes',{event:'*',schema:'public',table:'advisors'},  ()=>loadPanel())
+    .on('postgres_changes',{event:'*',schema:'public',table:'founders'},  ()=>loadPanel())
+    .on('postgres_changes',{event:'*',schema:'public',table:'site_stats'},()=>loadStats())
+    .subscribe();
+}
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  loadStats();
+  loadNotices();
+  renderCalNow();
+  setupRealtime();
+});
+</script>
+</body>
+</html>
